@@ -1,14 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { StyleSheet, Text, View, Pressable,TextInput, Image, SafeAreaView } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, Image, SafeAreaView } from 'react-native';
 import {Loading, CustomTextInput, CustomButton} from '../components/';
+import { useSelector, useDispatch } from 'react-redux';
+import { setEmail, setPassword, setIsLoading, setLogin } from '../redux/userSlice';
 
 
 const LoginPage = ({navigation})=> {
 
-  const [email,setEmail] = useState("")
-  const [password,setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  
+  //userSlice içerisindeki verilerin okunması
+  const {email, password,isLoading} = useSelector((state)=> state.user)
+
+  //userslice içerisindeki reducer yapılarını kullanma veya veri gönderme
+  const dispatch = useDispatch()
 
   return (
 
@@ -24,7 +29,7 @@ const LoginPage = ({navigation})=> {
     <CustomTextInput
     title="Email"
     isSecureText={false}
-    handleOnChangeText={setEmail}
+    handleOnChangeText={(text) => dispatch(setEmail(text))}
     handleValue={email}
     handlePlaceholder='Email girin'
     />
@@ -33,7 +38,7 @@ const LoginPage = ({navigation})=> {
     <CustomTextInput
     title="Password"
     isSecureText={true}
-    handleOnChangeText={setPassword}
+    handleOnChangeText={(password) => dispatch(setPassword(password))}
     handleValue={password}
     handlePlaceholder='Sifre girin'
     />
@@ -41,7 +46,7 @@ const LoginPage = ({navigation})=> {
     <CustomButton
       buttonText="Login"
       setWith="80%"
-      handleOnPress={() => setIsLoading(true)}
+      handleOnPress={() => dispatch(setLogin())}
     />
 
     <CustomButton
@@ -50,7 +55,7 @@ const LoginPage = ({navigation})=> {
        handleOnPress={() => navigation.navigate('SignUp')}
     />
     
-    {isLoading ? <Loading changeIsLoading={()=>setIsLoading(false)}/> : null}
+    {isLoading ? <Loading changeIsLoading={()=>dispatch(setIsLoading(false))}/> : null}
 
 
    </View>
