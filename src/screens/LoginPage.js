@@ -1,16 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, {useState} from 'react';
 import { StyleSheet, View, Image, SafeAreaView } from 'react-native';
 import {Loading, CustomTextInput, CustomButton} from '../components/';
 import { useSelector, useDispatch } from 'react-redux';
-import { setEmail, setPassword, setIsLoading, setLogin } from '../redux/userSlice';
+import {setIsLoading, setLogin } from '../redux/userSlice';
+import { login } from '../redux/userSlice';
 
 
 const LoginPage = ({navigation})=> {
 
-  
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   //userSlice içerisindeki verilerin okunması
-  const {email, password,isLoading} = useSelector((state)=> state.user)
+  const {isLoading} = useSelector((state)=> state.user)
 
   //userslice içerisindeki reducer yapılarını kullanma veya veri gönderme
   const dispatch = useDispatch()
@@ -29,7 +31,7 @@ const LoginPage = ({navigation})=> {
     <CustomTextInput
     title="Email"
     isSecureText={false}
-    handleOnChangeText={(text) => dispatch(setEmail(text))}
+    handleOnChangeText={(text) => setEmail(text)}
     handleValue={email}
     handlePlaceholder='Email girin'
     />
@@ -38,7 +40,7 @@ const LoginPage = ({navigation})=> {
     <CustomTextInput
     title="Password"
     isSecureText={true}
-    handleOnChangeText={(password) => dispatch(setPassword(password))}
+    handleOnChangeText={(password) => setPassword(password)}
     handleValue={password}
     handlePlaceholder='Sifre girin'
     />
@@ -46,7 +48,7 @@ const LoginPage = ({navigation})=> {
     <CustomButton
       buttonText="Login"
       setWith="80%"
-      handleOnPress={() => dispatch(setLogin())}
+      handleOnPress={() => dispatch(login({email, password}))}
     />
 
     <CustomButton

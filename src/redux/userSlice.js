@@ -1,15 +1,31 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {getAuth, signInWithEmailAndPassword} from "firebase/auth"
+
+
+export const login = createAsyncThunk( 'user/login', async({email, password}) =>{
+    try {
+        const auth =getAuth();
+        const userCredential = await signInWithEmailAndPassword(auth, email, password)
+        const user= userCredential.user;
+        const token= user.stsTokenManager.accessToken;
+
+        const userData ={
+            token,
+            user: user,
+        }
+        return userData
+    } catch (error) {
+        console.log("user line 18 satır",error)
+        throw error
+    }
+})
 
 const initialState ={
-
-    email: null,
-    password: null,
     isLoading: false,
     isAuth: false,
-    users:{
-        useremail:"test.com",
-        userpassword:"12345"
-    }
+    token : null,
+    user: null,
+    error: null
 }
 
 export const userSlice = createSlice({
@@ -25,23 +41,29 @@ export const userSlice = createSlice({
         },
         setIsLoading: (state, action)=>{
             state.isLoading = action.payload
-        },
-        setLogin: (state) => {
-            if((state.email=== state.users.useremail) && (state.password=== state.users.userpassword)){
-                
-                state.isAuth = true
-            }
-            else
-            {
-                
-                state.isAuth = false
-            }
-
         }
 
+    },
+    extraReducers: (builder) =>{
+        builder
+        .addCase(login.pending, (state)=> {
+            state.isLoading= true;
+            state.isAuth = false
+        })
+        .addCase(login.fulfilled, (state, action)=>{
+            state.isLoading = false;
+            state.isAuth= true;
+            state.user= action.payload.user;
+            state.token = action.payload.token;
+        })
+        .addCase(login.rejected, (state, action)=>{
+            state.isLoading= false;
+            state.isAuth=false;
+            state.error = action.error.message;
+        })
     }
 
 })
 
-export const {setEmail, setPassword, setIsLoading, setLogin }= userSlice.actions
+export const {setEmail, setPassword, setIsLoading }= userSlice.actions
 export default userSlice.reducer;
