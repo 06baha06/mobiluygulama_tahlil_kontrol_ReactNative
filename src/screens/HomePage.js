@@ -23,10 +23,10 @@ const HomePage = () => {
   const sendData = async()=>{
 
     try {
-      const docRef = await addDoc(collection(db, "users"),{
-        title : "baslik",
-        content: "icerik",
-        lesson: 54
+      const docRef = await addDoc(collection(db, "hastalar"),{
+        DogumTarihi : "16.05.2001",
+        AdiSoyadi: "SelimArdaÇevik",
+        TcNo: 21
       });
       console.log("Document written with ID",docRef.id)
     } catch (error) {
@@ -38,7 +38,7 @@ const HomePage = () => {
   const getData= async ()=>{
     const allData = []
     try {
-      const querySnapshot= await getDocs(collection(db,"users"));
+      const querySnapshot= await getDocs(collection(db,"hastalar"));
     querySnapshot.forEach((doc)=>{
       //console.log(`${doc.id} => ${doc.data()}`);
       allData.push({...doc.data(), id: doc.id})
@@ -52,7 +52,7 @@ const HomePage = () => {
 // veri silme
 
   const deleteData = async()=>{
-    await deleteDoc(doc(db,"users", "vjPB3rN3i8hGv6u73WQe"))
+    await deleteDoc(doc(db,"hastalar", "vjPB3rN3i8hGv6u73WQe"))
   }
 
   const handleLogout =()=>{
@@ -65,11 +65,11 @@ const HomePage = () => {
       {data.map((value, index)=>{
         return(
           <View key={index}>
-            <Text>{index}</Text>
+            <Text>Hastano:{index}</Text>
             <Text>{value.id}</Text>
-            <Text>{value.title}</Text>
-            <Text>{value.content}</Text>
-            <Text>{value.lesson}</Text>
+            <Text>Adı soyadı:{value.AdiSoyadi}</Text>
+            <Text>Doğum Tarihi:{value.DogumTarihi}</Text>
+            <Text>Tc nı:{value.TcNo}</Text>
           </View>
         )
       })}
