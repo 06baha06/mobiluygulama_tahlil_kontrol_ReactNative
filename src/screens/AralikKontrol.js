@@ -5,7 +5,8 @@ import { db } from '../../firebaseConfig'
 import {CustomTextInput, CustomButton} from '../components'
 
 const AralikKontrol = () => {
-  const [igData, setIgData] = useState([])
+  const [igDataCilv, setIgDataCilv] = useState([])
+  const [igDataAp, setIgDataAp] = useState([])
   const [age, setAge] = useState('')
   const [selectedIg, setSelectedIg] = useState('')
   const [testValue, setTestValue] = useState('')
@@ -13,11 +14,10 @@ const AralikKontrol = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getIgData()
+    Promise.all([getIgDataCilv(), getIgDataAp()])
   }, [])
 
-  const getIgData = async () => {
-    setLoading(true)
+  const getIgDataCilv = async () => {
     try {
       const allData = []
       const querySnapshot = await getDocs(collection(db, "kilavuz-cilv"))
@@ -26,11 +26,25 @@ const AralikKontrol = () => {
           allData.push({ ...doc.data(), id: doc.id })
         }
       })
-      setIgData(allData)
+      setIgDataCilv(allData)
     } catch (error) {
-      console.log("Veri çekme hatası:", error)
-      alert("Veri yüklenirken bir hata oluştu")
-    } finally {
+      console.log("Cilv veri çekme hatası:", error)
+    }
+  }
+
+  const getIgDataAp = async () => {
+    try {
+      const allData = []
+      const querySnapshot = await getDocs(collection(db, "kilavuz-ap"))
+      querySnapshot.forEach((doc) => {
+        if (doc.exists()) {
+          allData.push({ ...doc.data(), id: doc.id })
+        }
+      })
+      setIgDataAp(allData)
+      setLoading(false)
+    } catch (error) {
+      console.log("AP veri çekme hatası:", error)
       setLoading(false)
     }
   }
@@ -68,6 +82,12 @@ const AralikKontrol = () => {
     return null
   }
 
+  const getStatusForGuide = (userValue, minRef, maxRef) => {
+    if (userValue < minRef) return 'düşük'
+    if (userValue > maxRef) return 'yüksek'
+    return 'normal'
+  }
+
   const formatAgeRange = (range) => {
     if (range.includes('≥')) return range 
     if (range === 'Cord') return 'Kordon kanı'
@@ -92,34 +112,59 @@ const AralikKontrol = () => {
       return
     }
 
-    const testData = igData.find(item => item.id === selectedIg)
-    if (!testData) {
-      alert('Test tipi bulunamadı')
-      return
-    }
-
-    const ageRange = findAgeRange(ageInMonths, testData)
-    if (!ageRange) {
-      alert('Bu yaş için referans aralığı bulunamadı')
-      return
-    }
-
-    const referenceValue = testData[ageRange]
-    const [minRef, maxRef] = referenceValue.split('-').map(Number)
+    // CILV kılavuzu kontrolü
+    const testDataCilv = igDataCilv.find(item => item.id === selectedIg)
+    const ageRangeCilv = testDataCilv ? findAgeRange(ageInMonths, testDataCilv) : null
     
-    let status
-    if (userValue < minRef) status = 'düşük'
-    else if (userValue > maxRef) status = 'yüksek'
-    else status = 'normal'
+    // AP kılavuzu kontrolü
+    const testDataAp = igDataAp.find(item => item.id === selectedIg)
+    const ageRangeAp = testDataAp ? findAgeRange(ageInMonths, testDataAp) : null
+
+    // En az bir kılavuzda referans aralığı olmalı
+    if (!testDataCilv && !testDataAp) {
+      alert('Seçilen test tipi hiçbir kılavuzda bulunamadı')
+      return
+    }
+
+    if (!ageRangeCilv && !ageRangeAp) {
+      alert('Bu yaş için hiçbir kılavuzda referans aralığı bulunamadı')
+      return
+    }
+
+    let statusCilv = 'belirsiz'
+    let statusAp = 'belirsiz'
+    let referenceValueCilv = 'Mevcut değil'
+    let referenceValueAp = 'Mevcut değil'
+
+    // CILV değerlendirmesi
+    if (ageRangeCilv && testDataCilv) {
+      referenceValueCilv = testDataCilv[ageRangeCilv]
+      const [minRefCilv, maxRefCilv] = referenceValueCilv.split('-').map(Number)
+      statusCilv = getStatusForGuide(userValue, minRefCilv, maxRefCilv)
+    }
+
+    // AP değerlendirmesi
+    if (ageRangeAp && testDataAp) {
+      referenceValueAp = testDataAp[ageRangeAp]
+      const [minRefAp, maxRefAp] = referenceValueAp.split('-').map(Number)
+      statusAp = getStatusForGuide(userValue, minRefAp, maxRefAp)
+    }
 
     const newResult = {
       id: Date.now(),
       testType: selectedIg,
       age: ageInMonths,
-      range: ageRange,
-      referenceValue: referenceValue,
       userValue: userValue,
-      status: status,
+      cilv: {
+        range: ageRangeCilv,
+        referenceValue: referenceValueCilv,
+        status: statusCilv
+      },
+      ap: {
+        range: ageRangeAp,
+        referenceValue: referenceValueAp,
+        status: statusAp
+      },
       timestamp: new Date().toLocaleString()
     }
 
@@ -132,6 +177,26 @@ const AralikKontrol = () => {
 
   const clearResults = () => {
     setResults([])
+  }
+
+  const getCommonTests = () => {
+    // Her iki koleksiyonda bulunan test tiplerini al
+    const cilvTests = igDataCilv.map(item => item.id)
+    const apTests = igDataAp.map(item => item.id)
+    
+    // Tekrar eden test tiplerini tekilleştir
+    const uniqueTests = Array.from(new Set([...cilvTests, ...apTests]))
+    
+    // Her bir test için her iki koleksiyonda da kontrol yap
+    const commonTests = uniqueTests.filter(testId => {
+      const inCilv = cilvTests.includes(testId)
+      const inAp = apTests.includes(testId)
+      
+      // En az bir koleksiyonda varsa true döndür
+      return inCilv || inAp
+    })
+    
+    return commonTests
   }
 
   if (loading) {
@@ -151,20 +216,20 @@ const AralikKontrol = () => {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Test Tipi:</Text>
             <View style={styles.pickerContainer}>
-              {igData.map((item) => (
+              {getCommonTests().map((testId) => (
                 <TouchableOpacity
-                  key={item.id}
+                  key={testId}
                   style={[
                     styles.igButton,
-                    selectedIg === item.id && styles.selectedIgButton
+                    selectedIg === testId && styles.selectedIgButton
                   ]}
-                  onPress={() => setSelectedIg(item.id)}
+                  onPress={() => setSelectedIg(testId)}
                 >
                   <Text style={[
                     styles.igButtonText,
-                    selectedIg === item.id && styles.selectedIgButtonText
+                    selectedIg === testId && styles.selectedIgButtonText
                   ]}>
-                    {item.id}
+                    {testId}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -208,18 +273,42 @@ const AralikKontrol = () => {
                 <Text style={styles.timestamp}>{result.timestamp}</Text>
               </View>
               <Text style={styles.resultText}>Yaş: {result.age} ay</Text>
-              <Text style={styles.resultText}>Yaş Aralığı: {formatAgeRange(result.range)}</Text>
-              <Text style={styles.resultText}>Referans Aralığı: {result.referenceValue}mg/L</Text>
-              <View style={styles.valueContainer}>
-                <Text style={styles.resultText}>Test Değeri: {result.userValue} mg/L</Text>
-                <Text style={[
-                  styles.statusText,
-                  result.status === 'normal' && styles.normalStatus,
-                  result.status === 'düşük' && styles.lowStatus,
-                  result.status === 'yüksek' && styles.highStatus,
-                ]}>
-                  {result.status}
-                </Text>
+              <Text style={styles.resultText}>Test Değeri: {result.userValue} mg/L</Text>
+              
+              <View style={styles.guideContainer}>
+                <Text style={styles.guideTitle}>CILV Kılavuzu</Text>
+                {result.cilv.range && (
+                  <>
+                    <Text style={styles.resultText}>Yaş Aralığı: {formatAgeRange(result.cilv.range)}</Text>
+                    <Text style={styles.resultText}>Referans: {result.cilv.referenceValue} mg/L</Text>
+                    <Text style={[
+                      styles.statusText,
+                      result.cilv.status === 'normal' && styles.normalStatus,
+                      result.cilv.status === 'düşük' && styles.lowStatus,
+                      result.cilv.status === 'yüksek' && styles.highStatus,
+                    ]}>
+                      {result.cilv.status}
+                    </Text>
+                  </>
+                )}
+              </View>
+
+              <View style={styles.guideContainer}>
+                <Text style={styles.guideTitle}>AP Kılavuzu</Text>
+                {result.ap.range && (
+                  <>
+                    <Text style={styles.resultText}>Yaş Aralığı: {formatAgeRange(result.ap.range)}</Text>
+                    <Text style={styles.resultText}>Referans: {result.ap.referenceValue} mg/L</Text>
+                    <Text style={[
+                      styles.statusText,
+                      result.ap.status === 'normal' && styles.normalStatus,
+                      result.ap.status === 'düşük' && styles.lowStatus,
+                      result.ap.status === 'yüksek' && styles.highStatus,
+                    ]}>
+                      {result.ap.status}
+                    </Text>
+                  </>
+                )}
               </View>
             </View>
           ))}
@@ -350,5 +439,17 @@ const styles = StyleSheet.create({
   highStatus: {
     backgroundColor: '#f44336',
     color: 'white',
+  },
+  guideContainer: {
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  guideTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2196F3',
+    marginBottom: 8,
   }
 })
