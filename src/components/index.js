@@ -3,6 +3,8 @@ import Loading from "./Loading";
 import CustomButton from "./CustomButton";
 import AddPatientForm from "./AddPatientForm";
 import PatientCard from "./PatientCard";
+import InputSection from "./InputSection";
+import ResultCard from "./ResultCard";
 
 export{
 
@@ -11,6 +13,8 @@ export{
     Loading,
     CustomButton,
     PatientCard,
-    AddPatientForm
+    AddPatientForm,
+    InputSection,
+    ResultCard
 
 }
