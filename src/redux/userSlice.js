@@ -44,7 +44,7 @@ export const logout = createAsyncThunk('user/logout',async()=>{
 
 //kullanıcı kayıt islemleri
 
-export const register = createAsyncThunk('user/register', async({email, password}) => {
+export const register = createAsyncThunk('user/register', async({email, password, tcNo}) => {
     try {
         const auth = getAuth()
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -52,19 +52,20 @@ export const register = createAsyncThunk('user/register', async({email, password
         const user = userCredential.user;
         const token = user.stsTokenManager.accessToken;
         
-        // Firestore'a kullanıcı verilerini ve rolünü ekleme
         const db = getFirestore();
         await setDoc(doc(db, "users", user.uid), {
             email: user.email,
             userId: user.uid,
-            role: 'user', // Varsayılan olarak normal kullanıcı
+            TcNo: tcNo,  // "TcNo" olarak değiştirildi
+            role: 'user',
             createdAt: new Date(),
         });
 
         const userData = {
             token,
             user: user,
-            role: 'user'
+            role: 'user',
+            TcNo: tcNo  // Burada da "TcNo" olarak değiştirildi
         };
         
         return userData;

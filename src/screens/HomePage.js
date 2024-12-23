@@ -1,10 +1,9 @@
 import { StyleSheet, View, Animated, Dimensions, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
-import { collection, addDoc, getDocs, doc, deleteDoc } from 'firebase/firestore'
-import { db } from '../../firebaseConfig'
 import CustomButton from '../components/CustomButton'
 import PatientCard from '../components/PatientCard'
 import AddPatientForm from '../components/AddPatientForm'
+import { sendDataService, getDataService, deleteDataService } from '../services/homeService'
 
 const { height } = Dimensions.get('window')
 
@@ -54,40 +53,20 @@ const HomePage = () => {
 
   const sendData = async () => {
     try {
-      const processedData = {
-        ...Object.keys(formData).reduce((acc, key) => ({
-          ...acc,
-          [key]: formData[key] || null
-        }), {}),
-        eklemeTarihi: new Date().toLocaleString('tr-TR', {
-          timeZone: 'Europe/Istanbul',
-          hour12: false,
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      }
-
-      await addDoc(collection(db, "hastalar"), processedData)
+      await sendDataService(formData)
       setFormData(initialFormState)
       toggleDrawer()
       setIsSaved(!isSaved)
     } catch (error) {
-      console.error("error adding document", error)
+      console.error(error)
     }
   }
 
   const getData = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "hastalar"))
-      const allData = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      }))
-      setData(allData)
-      setFilteredData(allData)
+      const siraliData = await getDataService()
+      setData(siraliData)
+      setFilteredData(siraliData)
     } catch (error) {
       console.log(error)
     }
@@ -95,10 +74,10 @@ const HomePage = () => {
 
   const deleteData = async (id) => {
     try {
-      await deleteDoc(doc(db, "hastalar", id))
+      await deleteDataService(id)
       getData()
     } catch (error) {
-      console.error("Error deleting document: ", error)
+      console.error(error)
     }
   }
 

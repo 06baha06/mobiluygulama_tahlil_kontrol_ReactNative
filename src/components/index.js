@@ -5,6 +5,7 @@ import AddPatientForm from "./AddPatientForm";
 import PatientCard from "./PatientCard";
 import InputSection from "./InputSection";
 import ResultCard from "./ResultCard";
+import UserCard from "./UserCard";
 
 export{
 
@@ -15,6 +16,8 @@ export{
     PatientCard,
     AddPatientForm,
     InputSection,
-    ResultCard
+    ResultCard,
+    UserCard
+    
 
 }

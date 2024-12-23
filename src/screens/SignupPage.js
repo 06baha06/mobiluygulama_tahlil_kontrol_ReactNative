@@ -8,12 +8,13 @@ const SignupPage = () => {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [tcNo, setTcNo] = useState("")
 
   const dispatch = useDispatch();
 
   const {isLoading} = useSelector(state=>state.user)
   const handleRegister =()=>{
-    dispatch(register({email, password}))
+    dispatch(register({email, password, tcNo}))
   }
 
   if(isLoading){
@@ -25,11 +26,12 @@ const SignupPage = () => {
       <View style={styles.viewcontainer}>
       
        <CustomTextInput
-      title="Name"
-      isSecureText={false}
-      handleOnChangeText={setName}
-      handleValue={name}
-      handlePlaceholder='İsim girin'
+       title="TC Kimlik No"  // Yeni input eklendi
+       isSecureText={false}
+       handleOnChangeText={setTcNo}
+       handleValue={tcNo}
+       handlePlaceholder='TC Kimlik No girin'
+       keyboardType="numeric"
       />
 
 <CustomTextInput
