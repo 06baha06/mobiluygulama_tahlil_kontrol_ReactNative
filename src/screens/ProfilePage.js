@@ -6,7 +6,7 @@ import { Loading, CustomButton } from '../components'
 import { logout } from '../redux/userSlice'
 import { getUserTcNo, getPatientData } from '../services/profileService'
 
-const ProfilePage = () => {
+const ProfilePage = ({ navigation }) => {
   const [patientData, setPatientData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useSelector(state => state.user)
@@ -41,14 +41,22 @@ const ProfilePage = () => {
   return (
     <View style={styles.container}>
       <View style={styles.logoutContainer}>
-        <CustomButton
-          buttonText="Çıkış Yap"
-          setWith="80%"
-          handleOnPress={handleLogout}
-          buttonStyle={{ backgroundColor: '#ff4444' }}
-        />
+        <View style={styles.buttonRow}>
+          <CustomButton
+            buttonText="Çıkış Yap"
+            setWith="45%"
+            handleOnPress={handleLogout}
+            buttonStyle={{ backgroundColor: '#ff4444' }}
+          />
+          <CustomButton 
+            buttonText="Değer kontrol"
+            handleOnPress={() => navigation.navigate('AralikKontrol')}
+            setWith="45%"
+            buttonStyle={{ backgroundColor: '#ff4444', marginLeft: 10 }}
+          />
+        </View>
       </View>
-
+ 
       <ScrollView style={styles.contentContainer} showsVerticalScrollIndicator={false}>
         {patientData.map((patient) => (
           <UserCard
@@ -59,11 +67,11 @@ const ProfilePage = () => {
       </ScrollView>
     </View>
   )
-}
-
-export default ProfilePage
-
-const styles = StyleSheet.create({
+ }
+ 
+ export default ProfilePage
+ 
+ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -77,6 +85,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 10,
     top: 40,
-    zIndex: 1
+    zIndex: 1,
+    width: '95%'
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   }
-})
+ })

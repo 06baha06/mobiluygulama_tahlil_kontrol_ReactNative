@@ -5,7 +5,7 @@ import { CustomTextInput, CustomButton } from './index';
 const InputSection = ({ state, setState, checkRange }) => (
   <View style={styles.inputContainer}>
     <View style={styles.pickerContainer}>
-    {[...new Set([...state.data.cilv, ...state.data.ap, ...state.data.tjp].map(x => x.id))].map(testId => (
+    {[...new Set([...state.data.cilv, ...state.data.ap, ...state.data.tjp, ...state.data.turkjmedsci, ...state.data.os].map(x => x.id))].map(testId => (
   <TouchableOpacity
     key={testId}
     style={[styles.igButton, state.selectedIg === testId && styles.selectedIgButton]}

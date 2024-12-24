@@ -10,7 +10,7 @@ const ResultCard = ({ result, formatAgeRange }) => (
     <Text style={styles.resultText}>Yaş: {result.age} ay</Text>
     <Text style={styles.resultText}>Test Değeri: {result.userValue} mg/L</Text>
     
-    {['cilv', 'ap', 'tjp'].map(guide => result[guide]?.range && ( // tjp eklendi
+    {['cilv', 'ap', 'tjp', 'turkjmedsci', 'os'].map(guide => result[guide]?.range && ( // tjp eklendi
   <View key={guide} style={styles.guideContainer}>
     <Text style={styles.guideTitle}>{guide.toUpperCase()} Kılavuzu</Text>
     <Text style={styles.resultText}>Yaş Aralığı: {formatAgeRange(result[guide].range)}</Text>

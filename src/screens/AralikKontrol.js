@@ -8,7 +8,7 @@ import InputSection from '../components/InputSection'
 
 const AralikKontrol = () => {
   const [state, setState] = useState({
-    data: { cilv: [], ap: [], tjp: [] },
+    data: { cilv: [], ap: [], tjp: [], turkjmedsci: [], os:[] },
     age: '',
     selectedIg: '',
     testValue: '',
@@ -25,7 +25,9 @@ const AralikKontrol = () => {
       const data = {
         cilv: await fetchCollection("kilavuz-cilv"),
         ap: await fetchCollection("kilavuz-ap"),
-        tjp: await fetchCollection("kilavuz-tjp")
+        tjp: await fetchCollection("kilavuz-tjp"),
+        turkjmedsci: await fetchCollection("kilavuz-turkjmedsci"),
+        os: await fetchCollection("kilavuz-os"),
       }
       setState(prev => ({ ...prev, data, loading: false }))
     } catch (error) {
@@ -97,10 +99,12 @@ const checkValueRange = (value, refRange) => {
     const guides = {
       cilv: processGuide(data.cilv, selectedIg, ageNum, valueNum),
       ap: processGuide(data.ap, selectedIg, ageNum, valueNum),
-      tjp: processGuide(data.tjp, selectedIg, ageNum, valueNum)
+      tjp: processGuide(data.tjp, selectedIg, ageNum, valueNum),
+      turkjmedsci: processGuide(data.turkjmedsci, selectedIg, ageNum, valueNum),
+      os: processGuide(data.os, selectedIg, ageNum, valueNum)
     }
 
-    if (!guides.cilv && !guides.ap && !guides.tjp) return alert('Referans aralığı bulunamadı')
+    if (!guides.cilv && !guides.ap && !guides.tjp && !guides.turkjmedsci && !guides.os) return alert('Referans aralığı bulunamadı')
 
     setState(prev => ({
       ...prev,

@@ -48,7 +48,7 @@ const UserCard = ({ patient }) => {
         {immunoglobulins.map((ig) => (
           <View key={ig} style={styles.igItem}>
             <Text style={styles.igText}>
-              {ig}: {patient[ig] || 'Belirtilmemiş'}
+              {ig}: {patient[ig] ? `${patient[ig]} g/L` : 'Belirtilmemiş'}
             </Text>
           </View>
         ))}
