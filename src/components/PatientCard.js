@@ -1,17 +1,15 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 
-const PatientCard = ({ patient, index, onDelete }) => {
+const PatientCard = ({ patient, index, onDelete, onPress }) => {
   const immunoglobulins = ['IgA', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4']
 
   const calculateAge = (birthDate) => {
     try {
-      // Doğum tarihini parçalara ayır (GG.AA.YYYY formatı bekleniyor)
       const [day, month, year] = birthDate.split('.')
       const birth = new Date(year, month - 1, day)
       const today = new Date()
 
-      // Yaş hesaplama
       let years = today.getFullYear() - birth.getFullYear()
       let months = today.getMonth() - birth.getMonth()
 
@@ -20,7 +18,6 @@ const PatientCard = ({ patient, index, onDelete }) => {
         months += 12
       }
 
-      // Toplam ay sayısı
       const totalMonths = (years * 12) + months
 
       if (years === 0) {
@@ -34,7 +31,10 @@ const PatientCard = ({ patient, index, onDelete }) => {
   }
 
   return (
-    <View style={styles.patientCard}>
+    <TouchableOpacity 
+      style={styles.patientCard}
+      onPress={() => onPress(patient)}
+    >
       <View style={styles.headerInfo}>
         <View style={styles.basicInfo}>
           <Text>Adı soyadı: {patient.AdiSoyadi}</Text>
@@ -48,7 +48,7 @@ const PatientCard = ({ patient, index, onDelete }) => {
       </View>
       
       <View style={styles.igContainer}>
-        {immunoglobulins.map((ig, index) => (
+        {immunoglobulins.map((ig) => (
           <View key={ig} style={styles.igItem}>
             <Text style={styles.igText}>
               {ig}: {patient[ig] || 'Belirtilmemiş'}
@@ -59,15 +59,16 @@ const PatientCard = ({ patient, index, onDelete }) => {
 
       <TouchableOpacity 
         style={styles.deleteButton}
-        onPress={() => onDelete(patient.id)}
+        onPress={(e) => {
+          e.stopPropagation()
+          onDelete(patient.id)
+        }}
       >
         <Text style={styles.deleteButtonText}>Sil</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   )
 }
-
-export default PatientCard
 
 const styles = StyleSheet.create({
   patientCard: {
@@ -125,3 +126,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   }
 })
+
+export default PatientCard

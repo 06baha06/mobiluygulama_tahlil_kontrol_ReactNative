@@ -1,70 +1,73 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useState} from 'react';
-import { StyleSheet, View, Image, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Image, SafeAreaView, Text, Dimensions } from 'react-native';
 import {Loading, CustomTextInput, CustomButton} from '../components/';
 import { useSelector, useDispatch } from 'react-redux';
 import {setIsLoading, setLogin } from '../redux/userSlice';
 import { login } from '../redux/userSlice';
 
+const {width} = Dimensions.get('window')
 
-const LoginPage = ({navigation})=> {
+const LoginPage = ({navigation}) => {
+ const [email, setEmail] = useState('')
+ const [password, setPassword] = useState('')
+ const {isLoading} = useSelector((state)=> state.user)
+ const dispatch = useDispatch()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  //userSlice içerisindeki verilerin okunması
-  const {isLoading} = useSelector((state)=> state.user)
+ return (
+   <SafeAreaView style={styles.container}>
+     <StatusBar style="light" />
+     
+     <View style={styles.content}>
+       <View style={styles.headerContainer}>
+         <Image
+           source={require('../../assets/clipart1898543.png')}
+           style={styles.image}
+           resizeMode="contain"
+         />
+         <Text style={styles.title}>Hoş Geldiniz</Text>
+         <Text style={styles.subtitle}>Devam etmek için giriş yapın</Text>
+       </View>
 
-  //userslice içerisindeki reducer yapılarını kullanma veya veri gönderme
-  const dispatch = useDispatch()
+       <View style={styles.formContainer}>
+         <CustomTextInput
+           title="Email"
+           isSecureText={false}
+           handleOnChangeText={(text) => setEmail(text)}
+           handleValue={email}
+           handlePlaceholder='Email adresinizi girin'
+         />
 
-  return (
+         <CustomTextInput
+           title="Şifre"
+           isSecureText={true}
+           handleOnChangeText={(password) => setPassword(password)}
+           handleValue={password}
+           handlePlaceholder='Şifrenizi girin'
+         />
 
-  <SafeAreaView style={styles.container}>
-       <View style={styles.viewcontainer} >
-    
-        <Image
-          source={require('../../assets/favicon.png')}
-          style={styles.image}
-    
-        />
+         <View style={styles.buttonContainer}>
+           <CustomButton
+             buttonText="Giriş Yap"
+             setWith="100%"
+             handleOnPress={() => dispatch(login({email, password}))}
+           />
 
-    <CustomTextInput
-    title="Email"
-    isSecureText={false}
-    handleOnChangeText={(text) => setEmail(text)}
-    handleValue={email}
-    handlePlaceholder='Email girin'
-    />
+           <View style={styles.signupContainer}>
+             <Text style={styles.signupText}>Hesabınız yok mu?</Text>
+             <CustomButton
+               buttonText="Kayıt Ol"
+               setWith="40%"
+               handleOnPress={() => navigation.navigate('SignUp')}
+             />
+           </View>
+         </View>
+       </View>
+     </View>
 
-
-    <CustomTextInput
-    title="Password"
-    isSecureText={true}
-    handleOnChangeText={(password) => setPassword(password)}
-    handleValue={password}
-    handlePlaceholder='Sifre girin'
-    />
-
-    <CustomButton
-      buttonText="Login"
-      setWith="80%"
-      handleOnPress={() => dispatch(login({email, password}))}
-    />
-
-    <CustomButton
-       buttonText="Sign Up"
-       setWith="30%"
-       handleOnPress={() => navigation.navigate('SignUp')}
-    />
-    
-    {isLoading ? <Loading changeIsLoading={()=>dispatch(setIsLoading(false))}/> : null}
-
-
-   </View>
-
-  </SafeAreaView>
-   
-  );
+     {isLoading ? <Loading changeIsLoading={()=>dispatch(setIsLoading(false))}/> : null}
+   </SafeAreaView>
+ );
 }
 
 export default LoginPage
@@ -72,19 +75,59 @@ export default LoginPage
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'lightblue',
+    backgroundColor: '#2962ff',
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
   },
-  
-  
-  image:{
-    height:100,
-    width:100
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  viewcontainer:{
-    width:'80%',
-    alignItems:'center'
-  }
-  
+  image: {
+    height: width * 0.3,
+    width: width * 0.3,
+    marginBottom: 20,
+  },
+ title: {
+   fontSize: 28,
+   fontWeight: 'bold',
+   color: '#fff',
+   marginBottom: 10,
+ },
+ subtitle: {
+   fontSize: 16,
+   color: '#fff',
+   opacity: 0.8,
+ },
+ formContainer: {
+   width: '100%',
+   backgroundColor: '#fff',
+   borderRadius: 20,
+   padding: 20,
+   elevation: 5,
+   shadowColor: '#000',
+   shadowOffset: {
+     width: 0,
+     height: 2,
+   },
+   shadowOpacity: 0.25,
+   shadowRadius: 3.84,
+ },
+ buttonContainer: {
+   marginTop: 20,
+   width: '100%',
+ },
+ signupContainer: {
+   marginTop: 20,
+   alignItems: 'center',
+ },
+ signupText: {
+   fontSize: 14,
+   color: '#666',
+   marginBottom: 10,
+ }
 });

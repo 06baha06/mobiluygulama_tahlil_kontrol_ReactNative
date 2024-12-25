@@ -1,3 +1,4 @@
+// AralikKontrol.js
 import { StyleSheet, View, ScrollView, SafeAreaView, Text } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
@@ -6,15 +7,20 @@ import { CustomButton } from '../components'
 import ResultCard from '../components/ResultCard'
 import InputSection from '../components/InputSection'
 
-const AralikKontrol = () => {
+const AralikKontrol = ({ route }) => {
+  const patientData = route.params?.patientData
+
   const [state, setState] = useState({
-    data: { cilv: [], ap: [], tjp: [], turkjmedsci: [], os:[] },
+    data: { cilv: [], ap: [], tjp: [], turkjmedsci: [], os: [] },
     age: '',
     selectedIg: '',
     testValue: '',
     results: [],
     loading: true
   })
+
+  // İmmunoglobulin değerlerini göstermek için yardımcı fonksiyon
+  const immunoglobulins = ['IgA', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4']
 
   useEffect(() => {
     fetchData()
@@ -65,10 +71,9 @@ const AralikKontrol = () => {
       referenceValue: refValue,
       status: checkValueRange(value, refValue)
     }
-}
+  }
 
-const checkValueRange = (value, refRange) => {
-    // "≤19" veya "≥19" gibi tek değerli ifadeler için
+  const checkValueRange = (value, refRange) => {
     if (refRange.includes('≤')) {
         const limit = parseFloat(refRange.replace('≤', ''))
         return value <= limit ? 'normal' : 'yüksek'
@@ -78,7 +83,6 @@ const checkValueRange = (value, refRange) => {
         return value >= limit ? 'normal' : 'düşük'
     }
 
-    // "18-250" gibi aralık değerleri için
     if (refRange.includes('-')) {
         const [min, max] = refRange.split('-').map(Number)
         if (value < min) return 'düşük'
@@ -86,7 +90,7 @@ const checkValueRange = (value, refRange) => {
         return 'normal'
     }
     return 'belirsiz'
-}
+  }
 
   const checkRange = () => {
     const { age, testValue, selectedIg, data } = state
@@ -104,7 +108,8 @@ const checkValueRange = (value, refRange) => {
       os: processGuide(data.os, selectedIg, ageNum, valueNum)
     }
 
-    if (!guides.cilv && !guides.ap && !guides.tjp && !guides.turkjmedsci && !guides.os) return alert('Referans aralığı bulunamadı')
+    if (!guides.cilv && !guides.ap && !guides.tjp && !guides.turkjmedsci && !guides.os) 
+      return alert('Referans aralığı bulunamadı')
 
     setState(prev => ({
       ...prev,
@@ -140,6 +145,24 @@ const checkValueRange = (value, refRange) => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
         <View style={styles.content}>
+          {patientData && (
+            <View style={styles.patientCard}>
+              <View style={styles.basicInfo}>
+                <Text style={styles.patientText}>Adı Soyadı: {patientData.patientName}</Text>
+                <Text style={styles.patientText}>Yaş: {patientData.age} ay</Text>
+              </View>
+              <View style={styles.igValues}>
+                {immunoglobulins.map((ig) => (
+                  <View key={ig} style={styles.igItem}>
+                    <Text style={styles.igText}>
+                      {ig}: {patientData.immunoglobulins[ig] || 'Belirtilmemiş'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
           <InputSection 
             state={state}
             setState={setState}
@@ -183,6 +206,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  patientCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  basicInfo: {
+    marginBottom: 12,
+  },
+  patientText: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  igValues: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  igItem: {
+    width: '50%',
+    paddingVertical: 4,
+  },
+  igText: {
+    fontSize: 14,
+    color: '#444',
+  }
 })
 
 export default AralikKontrol

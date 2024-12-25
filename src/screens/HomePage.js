@@ -13,7 +13,7 @@ const initialFormState = {
   IgG1: '', IgG2: '', IgG3: '', IgG4: ''
 }
 
-const HomePage = () => {
+const HomePage = ({ navigation }) => {
   const [data, setData] = useState([])
   const [filteredData, setFilteredData] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -49,6 +49,33 @@ const HomePage = () => {
         useNativeDriver: true
       }).start()
     }
+  }
+
+  const handlePatientPress = (patient) => {
+    const calculateMonths = (birthDate) => {
+      const [day, month, year] = birthDate.split('.')
+      const birth = new Date(year, month - 1, day)
+      const today = new Date()
+      return (today.getFullYear() - birth.getFullYear()) * 12 + 
+             (today.getMonth() - birth.getMonth())
+    }
+
+    const ageInMonths = calculateMonths(patient.DogumTarihi)
+
+    navigation.navigate('AralikKontrol', {
+      patientData: {
+        age: ageInMonths.toString(),
+        immunoglobulins: {
+          IgA: patient?.IgA,
+          IgM: patient?.IgM,
+          IgG: patient?.IgG ,
+          IgG2: patient?.IgG2,
+          IgG3: patient?.IgG3 ,
+          IgG4: patient?.IgG4 ,
+        },
+        patientName: patient.AdiSoyadi
+      }
+    })
   }
 
   const sendData = async () => {
@@ -100,6 +127,7 @@ const HomePage = () => {
             patient={patient}
             index={index}
             onDelete={deleteData}
+            onPress={handlePatientPress}
           />
         ))}
       </ScrollView>
@@ -135,8 +163,6 @@ const HomePage = () => {
     </View>
   )
 }
-
-export default HomePage
 
 const styles = StyleSheet.create({
   container: {
@@ -192,3 +218,5 @@ const styles = StyleSheet.create({
     maxHeight: '90%',
   },
 })
+
+export default HomePage
